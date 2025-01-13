@@ -179,7 +179,7 @@ fn _save_wifi_config(nvs: &mut EspNvs<NvsDefault>, c: &WifiConfig) -> anyhow::Re
     let mut known_aps: KnownAPs = KnownAPs(Vec::new());
     let mut data = [0_u8; 256];
     if let Ok(Some(data)) = nvs.get_raw("KNOWN_APS", &mut data) {
-        known_aps = serde_json::from_slice(&data)?;
+        known_aps = serde_json::from_slice(data)?;
     }
     log::info!(
         ">>> KNOWN_APS: {:?} {}",
@@ -209,7 +209,7 @@ fn _delete_wifi_config(nvs: &mut EspNvs<NvsDefault>, ssid: &str) -> anyhow::Resu
     let mut known_aps: KnownAPs = KnownAPs(Vec::new());
     let mut data = [0_u8; 256];
     if let Ok(Some(data)) = nvs.get_raw("KNOWN_APS", &mut data) {
-        known_aps = serde_json::from_slice(&data)?;
+        known_aps = serde_json::from_slice(data)?;
     }
 
     // Update existing value and save back to NVS
@@ -231,7 +231,7 @@ fn update_known_aps(nvs: &EspNvs<NvsDefault>) -> anyhow::Result<()> {
     let mut known_aps: KnownAPs = KnownAPs(Vec::new());
     let mut data = [0_u8; 256];
     if let Ok(Some(data)) = nvs.get_raw("KNOWN_APS", &mut data) {
-        known_aps = serde_json::from_slice(&data)?;
+        known_aps = serde_json::from_slice(data)?;
     }
     log::info!("Updating KNOWN_APS >> {:?}", known_aps);
     let mut aps = KNOWN_APS.lock().unwrap();
@@ -245,15 +245,14 @@ fn wifi_scan(wifi: &mut EspWifi) -> anyhow::Result<()> {
     let scan = wifi
         .scan()?
         .into_iter()
-        .map(|ap| {
+        .inspect(|ap| {
             log::info!(
                 "SSID: {:?}, Channel: {}, RSSI: {}, Auth: {:?}",
                 ap.ssid,
                 ap.channel,
                 ap.signal_strength,
                 ap.auth_method,
-            );
-            ap
+            )
         })
         .collect::<Vec<_>>();
     let mut aps = WIFI_SCAN.lock().unwrap();
@@ -270,11 +269,11 @@ fn find_wifi_config(nvs: &EspNvs<NvsDefault>) -> anyhow::Result<Vec<WifiConfig>>
             // Check if we have configuration in NVS (using hashed SSID)
             let mut data = [0_u8; 64];
             if let Ok(Some(data)) = nvs.get_raw(hash_ssid(ap.ssid.as_str()).as_str(), &mut data) {
-                let config: WifiConfig = serde_json::from_slice(&data)?;
+                let config: WifiConfig = serde_json::from_slice(data)?;
                 log::info!("Found Wifi Config: {}", ap.ssid);
                 out.push(config);
             }
-            seen.push(&ap.ssid.as_str());
+            seen.push(ap.ssid.as_str());
         }
     }
     Ok(out)
@@ -349,7 +348,11 @@ fn start_access_point(wifi: &mut EspWifi) -> anyhow::Result<()> {
 }
 
 fn start_http_server<'a>() -> anyhow::Result<EspHttpServer<'a>> {
-    let mut server = EspHttpServer::new(&HttpConfig::default())?;
+    let config: HttpConfig = HttpConfig {
+        uri_match_wildcard: true,
+        ..Default::default()
+    };
+    let mut server = EspHttpServer::new(&config)?;
 
     server.fn_handler("/hello", http::Method::Get, |req| {
         let mut response = req.into_ok_response()?;
@@ -385,8 +388,8 @@ fn start_http_server<'a>() -> anyhow::Result<EspHttpServer<'a>> {
     })?;
 
     // Handle deleting an AP
-    server.fn_handler("/delete/:ssid", http::Method::Get, |req| {
-        let _ssid = req.uri().split('/').last().unwrap_or("");
+    server.fn_handler("/delete/*", http::Method::Get, |req| {
+        let _ssid = req.uri().split('/').next_back().unwrap_or("");
         let mut response = req.into_ok_response()?;
         response.write("SSID Removed".as_bytes())?;
         Ok::<(), anyhow::Error>(())
