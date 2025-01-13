@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Fi Configuration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            font-size: 24px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #ddd;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: 20px auto;
+        }
+        .form-container h2 {
+            margin-top: 0;
+            font-size: 18px;
+        }
+        .form-container input[type="text"], .form-container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            max-width: 378px;
+            font-size: 14px;
+        }
+        .form-container input[type="submit"] {
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .form-container input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 12px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 4px;
+            margin: 4px 2px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .button.delete {
+            background-color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wi-Fi Configuration</h1>
+    <div class="container">
+        <!-- List of Known APs -->
+        <h3>Visible APs</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 50%;">SSID</th>
+                    <th style="width: 15%;">Channel</th>
+                    <th style="width: 15%;">Signal Strength</th>
+                    <th style="width: 20%;">Auth Method</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ap in visible %}
+                <tr>
+                    <td>{{ ap.0 }}</td>
+                    <td>{{ ap.1 }}</td>
+                    <td>{{ ap.2 }}</td>
+                    <td>{{ ap.3 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <h3>Known APs</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 80%;">SSID</th>
+                    <th style="width: 20%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ap in aps %}
+                <tr>
+                    <td>{{ ap }}</td>
+                    <td>
+                        <a href="/delete/{{ ap }}" class="button delete">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Add New AP Form -->
+        <div class="form-container">
+            <h2>Add New Wi-Fi Configuration</h2>
+            <form action="/add" method="post">
+                <input type="text" name="ssid" placeholder="SSID" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <input type="submit" value="Add Configuration">
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+

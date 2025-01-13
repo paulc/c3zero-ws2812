@@ -1,0 +1,39 @@
+[package]
+name = "c3zero-ws2812"
+version = "0.1.0"
+authors = ["PaulC <paulc@>"]
+edition = "2021"
+resolver = "2"
+rust-version = "1.77"
+
+[[bin]]
+name = "c3zero-ws2812"
+harness = false # do not use the built in cargo test harness -> resolve rust-analyzer errors
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true    # Symbols are nice and they don't increase the size on Flash
+opt-level = "z"
+
+[features]
+default = []
+
+experimental = ["esp-idf-svc/experimental"]
+
+[dependencies]
+log = "0.4"
+esp-idf-svc = { version = "0.50", features = ["critical-section", "embassy-time-driver", "embassy-sync"] }
+esp-idf-sys = { version = "0.36.0", features = ["binstart"] }
+esp-idf-hal = "0.45.0"
+smart-leds = "0.4.0"
+ws2812-spi = "0.5.0"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.135"
+anyhow = "1.0.95"
+heapless = { version = "0.8.0", features = ["serde"] }
+askama = "0.12.1"
+
+[build-dependencies]
+embuild = "0.33"
